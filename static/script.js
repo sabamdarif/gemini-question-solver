@@ -133,8 +133,8 @@ async function analyzeImage() {
               const parts = data.candidates[0].content.parts;
               if (parts[0]?.text) {
                 fullResponse += parts[0].text;
-                // Update display with markdown
-                resultsContent.innerHTML = marked.parse(fullResponse);
+                // Update display with markdown and math protection
+                updateResults(fullResponse);
               }
             }
           } catch (e) {
@@ -156,6 +156,43 @@ async function analyzeImage() {
   } finally {
     analyzeBtn.disabled = false;
     analyzeText.textContent = "🔍 Analyze & Solve Questions";
+  }
+}
+
+function updateResults(text) {
+  // 1. Protect math blocks with alphanumeric placeholders to prevent markdown parsing issues
+  const mathBlocks = [];
+  const protectedText = text.replace(/\$\$([\s\S]+?)\$\$|\$((?:\\.|[^$\\])*)\$/g, (match) => {
+    mathBlocks.push(match);
+    return "MATHBLOCK" + (mathBlocks.length - 1) + "PH";
+  });
+
+  // 2. Parse Markdown
+  let html = marked.parse(protectedText);
+
+  // 3. Restore math blocks
+  html = html.replace(/MATHBLOCK(\d+)PH/g, (match, index) => {
+    return mathBlocks[parseInt(index)];
+  });
+
+  // 4. Update DOM
+  resultsContent.innerHTML = html;
+
+  // 5. Render Math with KaTeX
+  if (window.renderMathInElement && window.katex) {
+    try {
+      renderMathInElement(resultsContent, {
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false },
+          { left: "\\(", right: "\\)", display: false },
+          { left: "\\[", right: "\\]", display: true },
+        ],
+        throwOnError: false,
+      });
+    } catch (e) {
+      console.error("KaTeX rendering error:", e);
+    }
   }
 }
 
