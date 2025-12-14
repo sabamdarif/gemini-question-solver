@@ -1,9 +1,10 @@
 import json
 import os
 
-import requests
 from dotenv import load_dotenv
 from flask import Flask, Response, jsonify, render_template, request
+from google import genai
+from google.genai import types
 
 # Load environment variables from .env file
 load_dotenv()
@@ -37,53 +38,48 @@ def analyze():
         if not image_base64 or not mime_type:
             return jsonify({"error": "Image data is required"}), 400
 
-        # Prepare request to Gemini API
-        gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:streamGenerateContent?alt=sse&key={GEMINI_API_KEY}"
+        # Initialize Google Gen AI client
+        client = genai.Client(api_key=GEMINI_API_KEY)
 
-        payload = {
-            "contents": [
-                {
-                    "parts": [
-                        {"inline_data": {"mime_type": mime_type, "data": image_base64}},
-                        {
-                            "text": "Please analyze this image and solve all the questions shown in it. Provide detailed step-by-step solutions with clear explanations."
-                        },
+        # using generate_content method to generate response with a custom prompt
+        response = client.models.generate_content(
+            model=model,
+            contents=[
+                types.Content(
+                    parts=[
+                        types.Part(
+                            inline_data=types.Blob(
+                                mime_type=mime_type,
+                                data=image_base64
+                            )
+                        ),
+                        types.Part(
+                            text="Please analyze this image and solve all the questions shown in it. Provide detailed step-by-step solutions with clear explanations."
+                        ),
                     ]
-                }
-            ],
-            "generationConfig": {
-                "temperature": 0.7,
-                "topK": 40,
-                "topP": 0.95,
-                "maxOutputTokens": 8192,
-            },
-        }
-
-        # Stream the response from Gemini
+                )
+            ]
+        )
+        
+        # Stream the response (simulated for compatibility)
         def generate():
-            with requests.post(
-                gemini_url,
-                json=payload,
-                stream=True,
-                headers={"Content-Type": "application/json"},
-            ) as response:
-                if response.status_code != 200:
-                    error_msg = response.text
-                    try:
-                        error_data = response.json()
-                        error_msg = error_data.get("error", {}).get(
-                            "message", error_msg
-                        )
-                    except:
-                        pass
-                    yield f"data: {json.dumps({'error': error_msg})}\n\n"
-                    return
-
-                for line in response.iter_lines():
-                    if line:
-                        decoded_line = line.decode("utf-8")
-                        if decoded_line.startswith("data: "):
-                            yield decoded_line + "\n\n"
+            # extraction of text from response
+            text_result = response.text
+            
+            # The frontend expects a JSON structure in the 'data:' field
+            # We mock the structure: data.candidates[0].content.parts[0].text
+            fake_response = {
+                "candidates": [
+                    {
+                        "content": {
+                            "parts": [
+                                {"text": text_result}
+                            ]
+                        }
+                    }
+                ]
+            }
+            yield f"data: {json.dumps(fake_response)}\n\n"
 
         return Response(generate(), mimetype="text/event-stream")
 
