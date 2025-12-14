@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# Colors
+R='\033[1;31m'
+G='\033[1;32m'
+Y='\033[1;33m'
+B='\033[1;34m'
+C='\033[1;36m'
+NC='\033[0m'
+
+print_success() {
+	echo -e "${R}[${G}✓${R}]${G} $1 ${NC}"
+}
+
+print_failed() {
+	echo -e "${R}[${R}☓${R}]${R} $1 ${NC}"
+}
+
+print_warn() {
+	echo -e "${R}[${Y}!${R}]${Y} $1 ${NC}"
+}
+
+print_msg() {
+	echo -e "${R}[${C}-${R}]${B} $1 ${NC}"
+}
+
+# Check Python
+print_msg "Checking Python..."
+if command -v python3 &>/dev/null; then
+	print_success "Python3 found"
+	PIP="pip3"
+else
+	print_failed "Python not installed"
+	print_warn "Please install python first"
+	exit 1
+fi
+
+# Check main.py
+print_msg "Checking main.py..."
+if [ -f "main.py" ]; then
+	print_success "main.py found"
+else
+	print_failed "main.py not found"
+	exit 1
+fi
+
+# Check requirements.txt
+print_msg "Checking requirements.txt..."
+if [ -f "requirements.txt" ]; then
+	print_success "requirements.txt found"
+	print_msg "Installing requirements..."
+	if $PIP install -r requirements.txt -q; then
+		print_success "Requirements installed"
+	else
+		print_failed "Failed to install requirements"
+		exit 1
+	fi
+else
+	print_warn "requirements.txt not found, skipping"
+fi
+
+# Check gunicorn
+print_msg "Checking Gunicorn..."
+if ! command -v gunicorn &>/dev/null; then
+	print_warn "Gunicorn not found, installing..."
+	if $PIP install gunicorn -q; then
+		print_success "Gunicorn installed"
+	else
+		print_failed "Failed to install Gunicorn"
+		exit 1
+	fi
+else
+	print_success "Gunicorn found"
+fi
+
+# Launch app with Gunicorn
+print_msg "Launching Website"
+echo ""
+# use gunicorn makes your app stable and scalable
+# although it's not needed for a test app but
+# i just want to make it perfect
+gunicorn main:app \
+	--bind 0.0.0.0:5000 \
+	--workers 2 \
+	--threads 4 \
+	--timeout 120
