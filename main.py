@@ -32,12 +32,13 @@ def analyze():
         data = request.get_json()
         image_base64 = data.get("image")
         mime_type = data.get("mimeType")
+        model = data.get("model", "gemini-2.5-flash")
 
         if not image_base64 or not mime_type:
             return jsonify({"error": "Image data is required"}), 400
 
         # Prepare request to Gemini API
-        gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key={GEMINI_API_KEY}"
+        gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:streamGenerateContent?alt=sse&key={GEMINI_API_KEY}"
 
         payload = {
             "contents": [

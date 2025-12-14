@@ -13,6 +13,7 @@ const loadingState = document.getElementById("loadingState");
 const resultsContent = document.getElementById("resultsContent");
 const errorSection = document.getElementById("errorSection");
 const errorMessage = document.getElementById("errorMessage");
+const modelSelect = document.getElementById("modelSelect");
 
 // Handle image upload
 imageInput.addEventListener("change", handleImageUpload);
@@ -83,6 +84,7 @@ async function analyzeImage() {
       body: JSON.stringify({
         image: imageBase64,
         mimeType: imageMimeType,
+        model: modelSelect.value,
       }),
     });
 
