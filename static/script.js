@@ -4,6 +4,8 @@ let imageMimeType = null;
 
 const imageInput = document.getElementById("imageInput");
 const imagePreview = document.getElementById("imagePreview");
+const pdfPreview = document.getElementById("pdfPreview");
+const pdfFileName = document.getElementById("pdfFileName");
 const imagePreviewContainer = document.getElementById("imagePreviewContainer");
 const uploadPrompt = document.getElementById("uploadPrompt");
 const analyzeBtn = document.getElementById("analyzeBtn");
@@ -23,9 +25,9 @@ function handleImageUpload(event) {
   if (!file) return;
 
   // Validate file type
-  const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+  const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"];
   if (!validTypes.includes(file.type)) {
-    showError("Invalid file type. Please upload a JPG, PNG, GIF, or WEBP image.");
+    showError("Invalid file type. Please upload a JPG, PNG, GIF, WEBP image or PDF document.");
     return;
   }
 
@@ -41,7 +43,15 @@ function handleImageUpload(event) {
   // Show preview
   const reader = new FileReader();
   reader.onload = (e) => {
-    imagePreview.src = e.target.result;
+    if (file.type === "application/pdf") {
+      imagePreview.classList.add("hidden");
+      pdfPreview.classList.remove("hidden");
+      pdfFileName.textContent = file.name;
+    } else {
+      pdfPreview.classList.add("hidden");
+      imagePreview.classList.remove("hidden");
+      imagePreview.src = e.target.result;
+    }
     uploadPrompt.classList.add("hidden");
     imagePreviewContainer.classList.remove("hidden");
     analyzeBtn.disabled = false;
@@ -82,7 +92,7 @@ async function analyzeImage() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        image: imageBase64,
+        data: imageBase64,
         mimeType: imageMimeType,
         model: modelSelect.value,
       }),

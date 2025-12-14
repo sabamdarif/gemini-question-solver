@@ -31,12 +31,12 @@ def analyze():
 
     try:
         data = request.get_json()
-        image_base64 = data.get("image")
+        file_base64 = data.get("data") or data.get("image")
         mime_type = data.get("mimeType")
         model = data.get("model", "gemini-2.5-flash")
 
-        if not image_base64 or not mime_type:
-            return jsonify({"error": "Image data is required"}), 400
+        if not file_base64 or not mime_type:
+            return jsonify({"error": "File data is required"}), 400
 
         # Initialize Google Gen AI client
         client = genai.Client(api_key=GEMINI_API_KEY)
@@ -49,35 +49,26 @@ def analyze():
                     parts=[
                         types.Part(
                             inline_data=types.Blob(
-                                mime_type=mime_type,
-                                data=image_base64
+                                mime_type=mime_type, data=file_base64
                             )
                         ),
                         types.Part(
-                            text="Please analyze this image and solve all the questions shown in it. Provide detailed step-by-step solutions with clear explanations."
+                            text="Please analyze this document/image and solve all the questions shown in it. Provide detailed step-by-step solutions with clear explanations."
                         ),
                     ]
                 )
-            ]
+            ],
         )
-        
+
         # Stream the response (simulated for compatibility)
         def generate():
             # extraction of text from response
             text_result = response.text
-            
+
             # The frontend expects a JSON structure in the 'data:' field
             # We mock the structure: data.candidates[0].content.parts[0].text
             fake_response = {
-                "candidates": [
-                    {
-                        "content": {
-                            "parts": [
-                                {"text": text_result}
-                            ]
-                        }
-                    }
-                ]
+                "candidates": [{"content": {"parts": [{"text": text_result}]}}]
             }
             yield f"data: {json.dumps(fake_response)}\n\n"
 

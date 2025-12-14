@@ -426,3 +426,31 @@ body {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
+
+/* PDF Preview Styles */
+.pdf-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #4b5563;
+}
+
+.pdf-icon {
+  width: 4rem;
+  height: 4rem;
+  color: #ef4444;
+  /* Red color for PDF */
+  margin-bottom: 0.5rem;
+}
+
+.pdf-filename {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
