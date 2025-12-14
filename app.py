@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, Response, jsonify
-import requests
 import json
 import os
+
+import requests
 from dotenv import load_dotenv
+from flask import Flask, Response, jsonify, render_template, request
 
 # Load environment variables from .env file
 load_dotenv()
