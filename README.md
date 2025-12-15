@@ -10,36 +10,42 @@ A Flask web application that uses Google's Gemini AI to automatically solve ques
 ## Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/sabamdarif/gemini-question-solver.git
 cd gemini-question-solver
 ```
 
 2. Install dependencies:
+
 ```bash
 pip3 install -r requirements.txt
 ```
 
 3. Create a `.env` file in the root directory:
+
 ```
 GEMINI_API_KEY=your_api_key_here
 ```
 
-Get your API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
+Get your API key from [Google AI Studio](https://aistudio.google.com/api-keys).
 
 ## Usage
 
 1. Start the Flask server:
+
 ```bash
-python app.py
+python main.py
 ```
 
 #### Or, In Linux
+
 ```bash
 ./run
 ```
 
 2. Open your browser and navigate to:
+
 ```
 http://localhost:5000
 ```
