@@ -53,7 +53,7 @@ def analyze():
                             )
                         ),
                         types.Part(
-                            text="Please analyze this document/image and solve all the questions shown in it. Provide detailed step-by-step solutions with clear explanations."
+                            text="Please analyze this document/image and solve all the questions shown in it. Provide detailed step-by-step solutions with clear explanations, but if the step is so easy that a little child can understand then jump that step."
                         ),
                     ]
                 )
