@@ -79,6 +79,61 @@
 
         <!-- Results Display -->
         <div id="resultsContent" class="markdown-body"></div>
+        
+        <!-- Generate Handwritten Form Button -->
+        <div id="handwritingButtonContainer" class="handwriting-button-container hidden">
+          <button id="generateHandwritingBtn" class="generate-handwriting-btn">
+            ✍️ Generate Hand Written Form
+          </button>
+        </div>
+      </div>
+      
+      <!-- Handwriting Modal -->
+      <div id="handwritingModal" class="handwriting-modal hidden">
+        <div class="handwriting-modal-content">
+          <div class="handwriting-modal-header">
+            <h2 class="section-title">✍️ Generate Handwritten Form</h2>
+            <button id="closeHandwritingModal" class="close-modal-btn">&times;</button>
+          </div>
+          
+          <div class="quota-notice">
+            <p class="quota-notice-text">
+              ⚠️ <strong>Note:</strong> Image generation models have limited quota on the free tier. 
+              If you encounter quota errors, please wait and try again later or upgrade your plan.
+            </p>
+          </div>
+          
+          <div class="handwriting-upload-container">
+            <label for="handwritingSampleInput" class="upload-area handwriting-upload-area">
+              <div class="upload-prompt" id="handwritingUploadPrompt">
+                <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <p class="upload-text-main"><span class="upload-text-bold">Click to upload</span> your handwriting sample</p>
+                <p class="upload-text-sub">PNG, JPG, GIF, WEBP (Max 20MB)</p>
+              </div>
+              <div id="handwritingPreviewContainer" class="image-preview-container hidden">
+                <img id="handwritingPreview" class="preview-image" alt="Handwriting Sample Preview" />
+              </div>
+              <input id="handwritingSampleInput" type="file" class="file-input" accept="image/*" />
+            </label>
+          </div>
+          
+          <button id="generateHandwritingImageBtn" class="analyze-btn" disabled>
+            <span id="generateHandwritingText">🎨 Generate Handwritten Image</span>
+          </button>
+          
+          <!-- Generated Image Display -->
+          <div id="generatedImageContainer" class="generated-image-container hidden">
+            <h3 class="section-title">Generated Handwritten Image</h3>
+            <div id="generatedImageWrapper" class="generated-image-wrapper">
+              <img id="generatedImage" class="generated-image" alt="Generated Handwritten Text" />
+            </div>
+            <a id="downloadImageLink" class="download-btn" download="handwritten_text.png">
+              💾 Download Image
+            </a>
+          </div>
+        </div>
       </div>
 
       <!-- Error Display -->

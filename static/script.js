@@ -1,6 +1,10 @@
 let selectedImage = null;
 let imageBase64 = null;
 let imageMimeType = null;
+let currentAnswerText = ""; // Store the current answer text
+let handwritingSampleBase64 = null;
+let handwritingSampleMimeType = null;
+let isGeneratingHandwriting = false; // Flag to prevent multiple simultaneous requests
 
 const imageInput = document.getElementById("imageInput");
 const imagePreview = document.getElementById("imagePreview");
@@ -16,6 +20,21 @@ const resultsContent = document.getElementById("resultsContent");
 const errorSection = document.getElementById("errorSection");
 const errorMessage = document.getElementById("errorMessage");
 const modelSelect = document.getElementById("modelSelect");
+
+// Handwriting feature elements
+const handwritingButtonContainer = document.getElementById("handwritingButtonContainer");
+const generateHandwritingBtn = document.getElementById("generateHandwritingBtn");
+const handwritingModal = document.getElementById("handwritingModal");
+const closeHandwritingModal = document.getElementById("closeHandwritingModal");
+const handwritingSampleInput = document.getElementById("handwritingSampleInput");
+const handwritingPreview = document.getElementById("handwritingPreview");
+const handwritingPreviewContainer = document.getElementById("handwritingPreviewContainer");
+const handwritingUploadPrompt = document.getElementById("handwritingUploadPrompt");
+const generateHandwritingImageBtn = document.getElementById("generateHandwritingImageBtn");
+const generateHandwritingText = document.getElementById("generateHandwritingText");
+const generatedImageContainer = document.getElementById("generatedImageContainer");
+const generatedImage = document.getElementById("generatedImage");
+const downloadImageLink = document.getElementById("downloadImageLink");
 
 // Handle image upload
 imageInput.addEventListener("change", handleImageUpload);
@@ -150,6 +169,10 @@ async function analyzeImage() {
     if (!fullResponse) {
       throw new Error("No response generated. Please try again.");
     }
+    
+    // Store the answer text and show handwriting button
+    currentAnswerText = fullResponse;
+    handwritingButtonContainer.classList.remove("hidden");
   } catch (error) {
     loadingState.classList.add("hidden");
     showError(error.message || "An error occurred while analyzing the image.");
@@ -197,7 +220,12 @@ function updateResults(text) {
 }
 
 function showError(message) {
-  errorMessage.textContent = message;
+  // Check if message contains HTML (like <br> tags)
+  if (message.includes("<br>") || message.includes("<")) {
+    errorMessage.innerHTML = message;
+  } else {
+    errorMessage.textContent = message;
+  }
   errorSection.classList.remove("hidden");
   setTimeout(() => {
     errorSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -234,3 +262,142 @@ uploadArea.addEventListener("drop", (e) => {
     handleImageUpload({ target: { files: files } });
   }
 });
+
+// Handwriting feature handlers
+generateHandwritingBtn.addEventListener("click", () => {
+  handwritingModal.classList.remove("hidden");
+  generatedImageContainer.classList.add("hidden");
+  handwritingSampleInput.value = "";
+  handwritingPreviewContainer.classList.add("hidden");
+  handwritingUploadPrompt.classList.remove("hidden");
+  generateHandwritingImageBtn.disabled = true;
+  handwritingSampleBase64 = null;
+});
+
+closeHandwritingModal.addEventListener("click", () => {
+  handwritingModal.classList.add("hidden");
+});
+
+// Close modal when clicking outside
+handwritingModal.addEventListener("click", (e) => {
+  if (e.target === handwritingModal) {
+    handwritingModal.classList.add("hidden");
+  }
+});
+
+// Close modal with Escape key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !handwritingModal.classList.contains("hidden")) {
+    handwritingModal.classList.add("hidden");
+  }
+});
+
+// Handle handwriting sample upload
+handwritingSampleInput.addEventListener("change", handleHandwritingSampleUpload);
+
+function handleHandwritingSampleUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Validate file type
+  const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+  if (!validTypes.includes(file.type)) {
+    showError("Invalid file type. Please upload a JPG, PNG, GIF, or WEBP image.");
+    return;
+  }
+
+  // Validate file size (20MB)
+  if (file.size > 20 * 1024 * 1024) {
+    showError("File size too large. Please upload an image smaller than 20MB.");
+    return;
+  }
+
+  handwritingSampleMimeType = file.type;
+
+  // Show preview
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    handwritingPreview.src = e.target.result;
+    handwritingUploadPrompt.classList.add("hidden");
+    handwritingPreviewContainer.classList.remove("hidden");
+    generateHandwritingImageBtn.disabled = false;
+    hideError();
+  };
+  reader.readAsDataURL(file);
+
+  // Convert to base64 for API
+  const base64Reader = new FileReader();
+  base64Reader.onload = (e) => {
+    // Remove data URL prefix
+    handwritingSampleBase64 = e.target.result.split(",")[1];
+  };
+  base64Reader.readAsDataURL(file);
+}
+
+// Handle generate handwritten image button
+generateHandwritingImageBtn.addEventListener("click", generateHandwrittenImage);
+
+async function generateHandwrittenImage() {
+  // Prevent multiple simultaneous requests
+  if (isGeneratingHandwriting) {
+    return;
+  }
+
+  if (!handwritingSampleBase64 || !currentAnswerText) {
+    showError("Please upload a handwriting sample first.");
+    return;
+  }
+
+  // Set flag to prevent duplicate requests
+  isGeneratingHandwriting = true;
+
+  // Show loading state
+  generateHandwritingImageBtn.disabled = true;
+  generateHandwritingText.textContent = "⏳ Generating...";
+  generatedImageContainer.classList.add("hidden");
+  hideError();
+
+  try {
+    const response = await fetch("/api/generate-handwriting", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        answerText: currentAnswerText,
+        handwritingSample: handwritingSampleBase64,
+        handwritingMimeType: handwritingSampleMimeType,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to generate handwritten image");
+    }
+
+    const data = await response.json();
+
+    if (data.success && data.image) {
+      // Display the generated image
+      generatedImage.src = `data:${data.mimeType};base64,${data.image}`;
+      downloadImageLink.href = `data:${data.mimeType};base64,${data.image}`;
+      generatedImageContainer.classList.remove("hidden");
+    } else {
+      throw new Error("Failed to generate handwritten image");
+    }
+    } catch (error) {
+      let errorMessage = error.message || "An error occurred while generating the handwritten image.";
+      
+      // If error message contains newlines, preserve them
+      if (errorMessage.includes("\n")) {
+        errorMessage = errorMessage.replace(/\n/g, "<br>");
+      }
+      
+      showError(errorMessage);
+    } finally {
+      // Reset flag and button state
+      isGeneratingHandwriting = false;
+      generateHandwritingImageBtn.disabled = false;
+      generateHandwritingText.textContent = "🎨 Generate Handwritten Image";
+    }
+  }

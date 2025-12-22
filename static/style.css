@@ -295,6 +295,8 @@ body {
 
 .error-message {
   color: var(--error-secondary);
+  white-space: pre-line;
+  line-height: 1.6;
 }
 
 .markdown-body {
@@ -422,6 +424,164 @@ body {
   white-space: nowrap;
 }
 
+/* Handwriting Feature Styles */
+.handwriting-button-container {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--neutral-bold);
+}
+
+.generate-handwriting-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: var(--bg-surface);
+  font-weight: 600;
+  padding: var(--space-md) var(--space-lg);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: var(--shadow-sm);
+}
+
+.generate-handwriting-btn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+
+/* Handwriting Modal */
+.handwriting-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-md);
+}
+
+.handwriting-modal-content {
+  background: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-xl);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.handwriting-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+}
+
+.close-modal-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+  border-radius: var(--radius-sm);
+}
+
+.close-modal-btn:hover {
+  background: var(--neutral-normal);
+  color: var(--text-primary);
+}
+
+.quota-notice {
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.quota-notice-text {
+  font-size: 0.875rem;
+  color: #92400e;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.quota-notice-text strong {
+  color: #78350f;
+}
+
+.handwriting-upload-container {
+  margin-bottom: var(--space-lg);
+}
+
+.handwriting-upload-area {
+  height: 14rem;
+}
+
+.generated-image-container {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--neutral-bold);
+}
+
+.generated-image-wrapper {
+  width: 100%;
+  margin-bottom: var(--space-md);
+  border: 1px solid var(--neutral-bold);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  background: var(--neutral-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.generated-image {
+  max-width: 100%;
+  max-height: 500px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+}
+
+.download-btn {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: var(--bg-surface);
+  font-weight: 600;
+  padding: var(--space-md) var(--space-lg);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: var(--shadow-sm);
+}
+
+.download-btn:hover {
+  background: linear-gradient(135deg, var(--primary-hover), #4338ca);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+
 @media (max-width: 640px) {
   body {
     padding: var(--space-md) var(--space-xs);
@@ -441,5 +601,18 @@ body {
 
   .upload-area {
     height: 12rem;
+  }
+
+  .handwriting-modal-content {
+    padding: var(--space-lg);
+    max-height: 95vh;
+  }
+
+  .handwriting-upload-area {
+    height: 10rem;
+  }
+
+  .generated-image {
+    max-height: 300px;
   }
 }

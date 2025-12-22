@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 
@@ -5,6 +6,8 @@ from dotenv import load_dotenv
 from flask import Flask, Response, jsonify, render_template, request
 from google import genai
 from google.genai import types
+from PIL import Image
+import io
 
 # Load environment variables from .env file
 load_dotenv()
@@ -76,6 +79,112 @@ def analyze():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/generate-handwriting", methods=["POST"])
+def generate_handwriting():
+    if not GEMINI_API_KEY:
+        return jsonify(
+            {
+                "error": "API key not configured. Please add GEMINI_API_KEY to your .env file."
+            }
+        ), 500
+
+    try:
+        data = request.get_json()
+        answer_text = data.get("answerText")
+        handwriting_sample_base64 = data.get("handwritingSample")
+        handwriting_mime_type = data.get("handwritingMimeType", "image/jpeg")
+
+        if not answer_text:
+            return jsonify({"error": "Answer text is required"}), 400
+
+        if not handwriting_sample_base64:
+            return jsonify({"error": "Handwriting sample image is required"}), 400
+
+        # Initialize Google Gen AI client
+        client = genai.Client(api_key=GEMINI_API_KEY)
+
+        # Decode the handwriting sample image
+        handwriting_image_bytes = base64.b64decode(handwriting_sample_base64)
+        
+        # Create prompt for generating handwritten text
+        prompt = (
+            f"Convert the text from answer response to handwritten form from the sample which I given and generate an image. "
+            f"Write the following text in the exact same handwriting style as shown in the sample image:\n\n{answer_text}"
+        )
+
+        # Generate handwritten image using gemini-2.5-flash-image model
+        # Use only one model to avoid multiple API calls
+        response = client.models.generate_content(
+            model="gemini-2.5-flash-image",
+            contents=[
+                types.Part.from_bytes(
+                    data=handwriting_image_bytes,
+                    mime_type=handwriting_mime_type,
+                ),
+                prompt,
+            ],
+        )
+
+        # Extract the generated image from response
+        generated_image_base64 = None
+        for part in response.parts:
+            if part.inline_data is not None:
+                # Convert image to base64
+                image = part.as_image()
+                # Convert PIL Image to base64
+                buffered = io.BytesIO()
+                image.save(buffered, format="PNG")
+                generated_image_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+                break
+            elif part.text is not None:
+                # If model returns text instead of image, return error
+                return jsonify(
+                    {
+                        "error": "Model returned text instead of image. Please try again or use a different handwriting sample."
+                    }
+                ), 500
+
+        if not generated_image_base64:
+            return jsonify(
+                {"error": "Failed to generate handwritten image. Please try again."}
+            ), 500
+
+        return jsonify(
+            {
+                "success": True,
+                "image": generated_image_base64,
+                "mimeType": "image/png",
+            }
+        )
+
+    except Exception as e:
+        error_str = str(e)
+        error_message = "An error occurred while generating the handwritten image."
+        
+        # Parse quota/rate limit errors
+        if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
+            error_message = (
+                "⚠️ Quota Exceeded: The free tier for image generation models has been exhausted. "
+                "Image generation models have very limited quota on the free tier.\n\n"
+                "Options:\n"
+                "1. Wait and try again later (quota resets daily)\n"
+                "2. Upgrade your Google AI Studio plan for higher quotas\n"
+                "3. Check your usage at: https://ai.dev/usage?tab=rate-limit\n\n"
+                "For more information: https://ai.google.dev/gemini-api/docs/rate-limits"
+            )
+            # Try to extract retry delay from error
+            if "retry" in error_str.lower() or "Please retry in" in error_str:
+                import re
+                retry_match = re.search(r"retry in ([\d.]+)s", error_str, re.IGNORECASE)
+                if retry_match:
+                    retry_seconds = float(retry_match.group(1))
+                    retry_minutes = int(retry_seconds / 60)
+                    retry_secs = int(retry_seconds % 60)
+                    error_message += f"\n\nPlease retry in approximately {retry_minutes}m {retry_secs}s"
+        
+        return jsonify({"error": error_message}), 500
 
 
 if __name__ == "__main__":
