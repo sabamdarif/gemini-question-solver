@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gemini Image Question Solver</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
     <script src=" https://cdn.jsdelivr.net/npm/marked@17.0.1/lib/marked.umd.min.js "></script>
     <!-- KaTeX for math rendering -->
@@ -16,7 +17,8 @@
     <div class="container">
       <!-- Header -->
       <div class="card header-card">
-        <h1 class="main-title">🤖 Gemini Question Solver</h1>
+        <img class="web_ico" src="{{url_for('static', filename='favicon.ico')}}" alt="" />
+        <h1 class="main-title">Gemini Question Solver</h1>
         <p class="subtitle">Upload an image with questions and let Gemini solve them for you</p>
       </div>
 
