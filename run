@@ -1,27 +1,27 @@
 #!/bin/bash
 
-# Colors
-R='\033[1;31m'
-G='\033[1;32m'
-Y='\033[1;33m'
-B='\033[1;34m'
-C='\033[1;36m'
-NC='\033[0m'
+# Get timestamp function
+get_timestamp() {
+	date "+%Y-%m-%d %H:%M:%S %z"
+}
+
+# Get PID
+PID=$$
 
 print_success() {
-	echo -e "${R}[${G}✓${R}]${G} $1 ${NC}"
+	echo "[$(get_timestamp)] [$PID] [INFO] $1"
 }
 
 print_failed() {
-	echo -e "${R}[${R}☓${R}]${R} $1 ${NC}"
+	echo "[$(get_timestamp)] [$PID] [ERROR] $1"
 }
 
 print_warn() {
-	echo -e "${R}[${Y}!${R}]${Y} $1 ${NC}"
+	echo "[$(get_timestamp)] [$PID] [WARNING] $1"
 }
 
 print_msg() {
-	echo -e "${R}[${C}-${R}]${B} $1 ${NC}"
+	echo "[$(get_timestamp)] [$PID] [INFO] $1"
 }
 
 # Check Python
@@ -75,10 +75,6 @@ fi
 
 # Launch app with Gunicorn
 print_msg "Launching Website"
-echo ""
-# use gunicorn makes your app stable and scalable
-# although it's not needed for a test app but
-# i just want to make it perfect
 gunicorn main:app \
 	--bind 0.0.0.0:5000 \
 	--workers 2 \
