@@ -6,12 +6,12 @@ from flask import Flask, Response, jsonify, render_template, request
 from google import genai
 from google.genai import types
 
-# Load environment variables from .env file
+# Load .env file
 load_dotenv()
 
 app = Flask(__name__)
 
-# Get API key from environment
+# Get API key
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 
@@ -41,7 +41,7 @@ def analyze():
         # Initialize Google Gen AI client
         client = genai.Client(api_key=GEMINI_API_KEY)
 
-        # using generate_content method to generate response with a custom prompt
+        # using generate_content method to generate response
         response = client.models.generate_content(
             model=model,
             contents=[
@@ -60,7 +60,6 @@ def analyze():
             ],
         )
 
-        # Stream the response (simulated for compatibility)
         def generate():
             # extraction of text from response
             text_result = response.text
