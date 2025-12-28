@@ -82,4 +82,4 @@ if __name__ == "__main__":
         print("⚠️  Warning: GEMINI_API_KEY not found in .env file")
         print("   Please create a .env file with your API key:")
         print("   GEMINI_API_KEY=your_api_key_here")
-    app.run(debug=True, port=5000)
+    app.run()
